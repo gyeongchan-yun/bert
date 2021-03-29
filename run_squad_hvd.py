@@ -454,6 +454,8 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
           tf.logging.info("end_position: %d" % (end_position))
           tf.logging.info(
               "answer: %s" % (tokenization.printable_text(answer_text)))
+      elif example_index == 20:
+        tf.logging.info("Tokenizing the rest of the examples.. It might a take long time.")
 
       feature = InputFeatures(
           unique_id=unique_id,
@@ -1127,6 +1129,7 @@ def validate_flags_or_throw(bert_config):
 
 def main(_):
   hvd.init()
+  os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
   FLAGS.output_dir = FLAGS.output_dir if hvd.rank() == 0 else os.path.join(FLAGS.output_dir, str(hvd.rank()))
 
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -1148,7 +1151,8 @@ def main(_):
   is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
 
   config = tf.ConfigProto()
-  config.gpu_options.visible_device_list = str(hvd.local_rank())
+  #config.gpu_options.visible_device_list = str(hvd.local_rank())
+  config.gpu_options.visible_device_list = str(0)
 
   run_config = tf.contrib.tpu.RunConfig(
       cluster=tpu_cluster_resolver,

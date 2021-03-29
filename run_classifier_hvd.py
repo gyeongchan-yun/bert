@@ -784,6 +784,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
 
 def main(_):
   hvd.init()
+  os.environ['CUDA_VISIBLE_DEVICES'] = str(hvd.local_rank())
   FLAGS.output_dir = FLAGS.output_dir if hvd.rank() == 0 else os.path.join(FLAGS.output_dir, str(hvd.rank()))
 
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -832,7 +833,8 @@ def main(_):
   is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
 
   config = tf.ConfigProto()
-  config.gpu_options.visible_device_list = str(hvd.local_rank())
+  #config.gpu_options.visible_device_list = str(hvd.local_rank())
+  config.gpu_options.visible_device_list = str(0)
 
   run_config = tf.contrib.tpu.RunConfig(
       cluster=tpu_cluster_resolver,
